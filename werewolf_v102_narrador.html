@@ -1644,23 +1644,24 @@
                 }
                 // --- CENÁRIO A: NOITE 1 (Informação e Bluffs) ---
                 else if (isNightOne && (loginPersonagem == "Lobisomem" || loginJogador == "NARRADOR")) {
-                    const bluffsContent = selectedBluffs.map(role => {
-                        // Buscamos a descrição na sua constante global
-                        const infoHabilidade = PERSONAGENS_BEM_INFO[role] || "Habilidade não definida.";
+                    if (total >= 7) {
+                        const bluffsContent = selectedBluffs.map(role => {
+                            // Buscamos a descrição na sua constante global
+                            const infoHabilidade = PERSONAGENS_BEM_INFO[role.trim()] || "Habilidade não definida.";
 
-                        return `
+                            return `
                             <div style="border-bottom: 1px solid #ffffff33; padding: 8px 0; text-align: left;">
                                 <strong style="color: #ffcdd2; display: block;">${role}</strong>
                                 <small style="font-weight: normal; font-size: 10px; line-height: 1.2;">${infoHabilidade}</small>
                             </div>
                         `;
-                    }).join("")
-                    // 2. Define o conteúdo final (tratando caso o array esteja vazio)
-                    const finalContent = selectedBluffs.length > 0
-                        ? bluffsContent
-                        : "<em style='font-size:10px; opacity:0.7;'>Nenhum blefe disponível no momento.</em>";
-                    // 3. Adiciona na Timeline (addStep)
-                    addStep("Lobisomem", `Lobisomem (${nomeRealLobisomem})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-demon", `
+                        }).join("")
+                        // 2. Define o conteúdo final (tratando caso o array esteja vazio)
+                        const finalContent = selectedBluffs.length > 0
+                            ? bluffsContent
+                            : "<em style='font-size:10px; opacity:0.7;'>Nenhum blefe disponível no momento.</em>";
+                        // 3. Adiciona na Timeline (addStep)
+                        addStep("Lobisomem", `Lobisomem (${nomeRealLobisomem})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-demon", `
                         <div style="font-size:11px; color:#C62828; font-style:italic; margin-top: 5px; margin-bottom: 10px;">
                             Habilidade: Cada noite (exceto a primeira), escolha um jogador para morrer.
                         </div>
@@ -1670,8 +1671,19 @@
                             <div style="font-size: 12px; font-weight: bold; border-bottom: 1px solid white; margin-bottom: 5px; padding-bottom: 2px;">SEUS BLEFES SUGERIDOS:</div>
                             ${finalContent}
                         </div>
+                    `)
+                    }
+                    else {
+                        addStep("Lobisomem", `Lobisomem (${nomeRealLobisomem})`, `<img src="${urlImagem}" style="width:60px; vertical-align:middle;">`, "bg-demon", `
+                        <div style="text-align:center; padding:15px; color: #ffcdd2; font-style: italic; border: 1px dashed #ffcdd2; border-radius: 8px;">
+                            ❌ Menos de 7 jogadores. Sem blefes disponíveis. <br>
+                            <small>"A vila é pequena demais para segredos. Em partidas reduzidas, você deve criar seus próprios disfarces."</small>
+                        </div>
                     `);
+                    };
                 }
+
+                
                 // --- CENÁRIO B: ATAQUES ---
                 else if (isNightPlus && (loginPersonagem == "Lobisomem" || loginJogador == "NARRADOR")) {
 
@@ -2610,9 +2622,9 @@
                     const painelNarrador = (loginJogador === "NARRADOR") ? `
                         <div style="margin-top: 15px; padding: 10px; background: #e3f2fd; border-left: 4px solid #1e88e5; border-radius: 4px; text-align: left; font-size: 11px; color: #0d47a1;">
                             <strong>🛡️ AUDITORIA DO NARRADOR:</strong><br>
-                            ${detalhesNarrador.length > 0 
-                                ? `Pares detectados:<br>• ${detalhesNarrador.join('<br>• ')}` 
-                                : 'Nenhum par detectado no círculo.'}
+                            ${detalhesNarrador.length > 0
+                            ? `Pares detectados:<br>• ${detalhesNarrador.join('<br>• ')}`
+                            : 'Nenhum par detectado no círculo.'}
                             <br><br>
                             <small style="color:#666">Pares encontrados: ${paresEncontrados} | Enviada: ${respostaFinal}</small>
                         </div>
@@ -2943,7 +2955,7 @@
                     <div style="text-align:center; padding:20px; color: #C5CAE9; font-style: italic;">
                         ❌ Você não tem habilidade durante à noite. <br>
                     </div>
-                `);
+                    `);
                 }
             }
 
@@ -4194,7 +4206,7 @@
 
             }).catch(err => console.error("Erro no processamento do anoitecer:", err));
         }
-        
+
         function updateGamePhase(novaFase) {
             // ATUALIZA FIREBASE
             db.ref('partida/configuracao/faseAtual').set(novaFase);
