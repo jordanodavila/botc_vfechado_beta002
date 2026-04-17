@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detector de Boiola</title>
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: white;
+            font-family: 'Arial Black', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        h1 {
+            color: #ffcc00;
+            text-shadow: 2px 2px #000;
+            text-align: center;
+        }
+
+        /* Botão de Teste */
+        #btn-teste {
+            width: 150px;
+            height: 150px;
+            background-color: #ff0000;
+            border: 5px solid #800000;
+            border-radius: 50%;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+            transition: transform 0.1s;
+            z-index: 10;
+        }
+
+        #btn-teste:active {
+            transform: scale(0.95);
+            background-color: #cc0000;
+        }
+
+        /* Efeito de Scanner */
+        #scanner {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background-color: rgba(255, 0, 0, 0.7);
+            box-shadow: 0 0 15px 5px red;
+            z-index: 5;
+            animation: scan 1.5s infinite ease-in-out;
+        }
+
+        @keyframes scan {
+            0% { top: 0; }
+            50% { top: 100%; }
+            100% { top: 0; }
+        }
+
+        /* Modais */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal-content {
+            padding: 50px;
+            border-radius: 20px;
+            text-align: center;
+            font-size: 3rem;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px #000;
+            border: 10px solid white;
+        }
+
+        .alfa { background-color: #2ecc71; } /* Verde */
+        
+        .boiola {
+            background: linear-gradient(45deg, red, orange, yellow, green, blue, indigo, violet);
+            animation: rainbow 0.5s linear infinite;
+        }
+
+        @keyframes rainbow {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>DETECTOR DE BOIOLA</h1>
+
+    <div id="scanner"></div>
+    
+    <button id="btn-teste">TESTE</button>
+
+    <div id="modal-alfa" class="modal" onclick="fecharModais()">
+        <div class="modal-content alfa">MACHO ALFA</div>
+    </div>
+
+    <div id="modal-boiola" class="modal" onclick="fecharModais()">
+        <div class="modal-content boiola">🚨 BOIOLA DETECTADO 🚨</div>
+    </div>
+
+    <script>
+        const btn = document.getElementById('btn-teste');
+        const scanner = document.getElementById('scanner');
+        let timer;
+        let isAlpha = false;
+
+        // GATILHO ESCONDIDO:
+        // Se segurar o botão por mais de 800ms, define como ALFA.
+        // Se for um clique rápido, é BOIOLA.
+        
+        btn.addEventListener('mousedown', () => {
+            isAlpha = false;
+            timer = setTimeout(() => {
+                isAlpha = true;
+                console.log("Modo Alfa Ativado"); // Só pra você saber que funcionou
+            }, 800); 
+        });
+
+        btn.addEventListener('mouseup', () => {
+            clearTimeout(timer);
+            iniciarScanner();
+        });
+
+        function iniciarScanner() {
+            btn.style.display = 'none';
+            scanner.style.display = 'block';
+
+            // Simula o tempo de "processamento" do scanner
+            setTimeout(() => {
+                scanner.style.display = 'none';
+                exibirResultado();
+            }, 3000);
+        }
+
+        function exibirResultado() {
+            if (isAlpha) {
+                document.getElementById('modal-alfa').style.display = 'flex';
+            } else {
+                document.getElementById('modal-boiola').style.display = 'flex';
+            }
+        }
+
+        function fecharModais() {
+            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+            btn.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
