@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detector de Gay</title>
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: white;
+            font-family: 'Arial Black', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            color: #ffcc00;
+            text-shadow: 2px 2px #000;
+            text-align: center;
+            margin: 10px;
+        }
+
+        /* Botão de Teste Otimizado para Mobile */
+        #btn-teste {
+            width: 60vw;
+            max-width: 300px;
+            min-width: 150px;
+            aspect-ratio: 1 / 1;
+            height: auto;
+
+            background-color: #ff0000;
+            border: 10px solid #800000;
+            border-radius: 50%;
+
+            color: white;
+            font-weight: bold;
+            font-size: clamp(1rem, 5vw, 2rem);
+
+            cursor: pointer;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.6);
+            transition: transform 0.1s;
+            z-index: 10;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #btn-teste:active {
+            transform: scale(0.95);
+        }
+
+        /* Efeito de Scanner */
+        #scanner {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background-color: rgba(255, 0, 0, 0.7);
+            box-shadow: 0 0 15px 5px red;
+            z-index: 5;
+            animation: scan 1.5s infinite ease-in-out;
+        }
+
+        @keyframes scan {
+            0% {
+                top: 0;
+            }
+
+            50% {
+                top: 100%;
+            }
+
+            100% {
+                top: 0;
+            }
+        }
+
+        /* Modais */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            overflow: hidden;
+            /* Importante para a purpurina não criar barras de rolagem */
+        }
+
+        .modal-content {
+            padding: 50px;
+            border-radius: 20px;
+            text-align: center;
+            font-size: clamp(1.5rem, 8vw, 3rem);
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px #000;
+            border: 10px solid white;
+            z-index: 110;
+            /* Fica acima da purpurina */
+            position: relative;
+        }
+
+        .alfa {
+            background-color: #2ecc71;
+        }
+
+        /* Verde */
+
+        .boiola {
+            background: linear-gradient(45deg, red, orange, yellow, green, blue, indigo, violet);
+            background-size: 400% 400%;
+            animation: rainbowGradient 2s ease infinite;
+        }
+
+        @keyframes rainbowGradient {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* CONTAINER DE PURPURINA */
+        #purpurina-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            /* Não atrapalha o clique para fechar */
+            z-index: 105;
+            /* Fica entre o fundo da modal e o texto */
+        }
+
+        /* Estilo básico da partícula de purpurina */
+        .confete {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            top: -20px;
+            z-index: 106;
+            opacity: 0.9;
+            /* Corrigido: nome da animação sem espaço e adicionado movimento lateral */
+            animation: quedaConfete 3s linear forwards;
+        }
+
+        /* Animação de Queda, Rotação e Balanço lateral */
+        @keyframes quedaConfete {
+            0% {
+                transform: translateY(0) rotate(0deg) translateX(0);
+                opacity: 1;
+            }
+
+            25% {
+                transform: translateY(25vh) rotate(90deg) translateX(15px);
+            }
+
+            50% {
+                transform: translateY(50vh) rotate(180deg) translateX(-15px);
+            }
+
+            75% {
+                transform: translateY(75vh) rotate(270deg) translateX(15px);
+            }
+
+            100% {
+                transform: translateY(105vh) rotate(360deg) translateX(0);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>DETECTOR DE GAY</h1>
+
+    <div id="scanner"></div>
+
+    <button id="btn-teste">TESTE</button>
+
+    <div id="modal-alfa" class="modal" onclick="fecharModais()">
+        <div class="modal-content alfa">HÉTERO</div>
+    </div>
+
+    <div id="modal-boiola" class="modal" onclick="fecharModais()">
+        <div id="purpurina-container"></div>
+        <div class="modal-content boiola">🚨 GAY 🚨<br><span
+                style="font-size: 0.5em; font-weight: normal;">(Gladiadora detectada)</span></div>
+    </div>
+
+    <script>
+        const btn = document.getElementById('btn-teste');
+        const scanner = document.getElementById('scanner');
+        const pContainer = document.getElementById('purpurina-container');
+        let isAlpha = false;
+
+        const somAlfa = new Audio('male-validated.mp3');
+        const somScanner = new Audio('sci-fi-scanner.mp3');
+        const somAlerta = new Audio('siren-alert.mp3');
+
+        // Gatilho de posição (Dedo na direita = Alfa)
+        btn.addEventListener('click', (e) => {
+            const rect = btn.getBoundingClientRect(); //dsa
+            const x = e.clientX - rect.left;
+            const middle = rect.width / 2;
+
+            if (x > middle + 20) {
+                isAlpha = true;
+            } else {
+                isAlpha = false;
+            }
+
+            iniciarScanner();
+        });
+
+        function iniciarScanner() {
+            btn.style.visibility = 'hidden';
+            scanner.style.display = 'block';
+
+            // Inicia o som do scanner
+            somScanner.currentTime = 0; // Garante que comece do início
+            somScanner.loop = true;      // Faz o som repetir se o arquivo for curto
+            somScanner.play();
+
+            setTimeout(() => {
+                // Para o som do scanner após 3 segundos
+                somScanner.pause();
+                somScanner.currentTime = 0; // Reseta para a próxima vez
+
+                scanner.style.display = 'none';
+                exibirResultado();
+            }, 3000);
+        }
+
+        function jogarPurpurina() {
+            pContainer.innerHTML = '';
+            const cores = ['#FFD700', '#FF69B4', '#00BFFF', '#ADFF2F', '#FF4500', '#FFFFFF'];
+
+            // Aumentei para 80 partículas para ficar bem espalhafatoso
+            for (let i = 0; i < 800; i++) {
+                const confete = document.createElement('div');
+                confete.classList.add('confete');
+
+                confete.style.left = Math.random() * 100 + 'vw';
+                // Atraso aleatório para as partículas não caírem todas em linha reta
+                confete.style.animationDelay = Math.random() * 3 + 's';
+
+                const tamanho = (Math.random() * 6 + 4) + 'px';
+                confete.style.width = tamanho;
+                confete.style.height = tamanho;
+
+                confete.style.backgroundColor = cores[Math.floor(Math.random() * cores.length)];
+
+                // Adiciona um brilho extra (glow)
+                confete.style.boxShadow = `0 0 5px ${confete.style.backgroundColor}`;
+
+                pContainer.appendChild(confete);
+            }
+        }
+
+        function exibirResultado() {
+            if (isAlpha) {
+                somAlfa.play().catch(e => console.log("Erro ao tocar som:", e));
+                document.getElementById('modal-alfa').style.display = 'flex';
+            } else {
+                jogarPurpurina();
+                somAlerta.play().catch(e => console.log("Erro ao tocar som:", e));
+                document.getElementById('modal-boiola').style.display = 'flex';
+            }
+        }
+
+        function fecharModais() {
+            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+            pContainer.innerHTML = ''; // Para de criar purpurina
+            btn.style.visibility = 'visible';
+        }
+    </script>
+</body>
+
+</html>
