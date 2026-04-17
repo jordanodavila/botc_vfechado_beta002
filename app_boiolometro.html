@@ -27,18 +27,30 @@
 
         /* Botão de Teste */
         #btn-teste {
-            width: 150px;
-            height: 150px;
+            width: 60vw;
+            max-width: 300px;
+            min-width: 150px;
+            aspect-ratio: 1 / 1;
+            height: auto;
+
             background-color: #ff0000;
-            border: 5px solid #800000;
+            border: 10px solid #800000;
             border-radius: 50%;
+
             color: white;
             font-weight: bold;
-            font-size: 1.2rem;
+            font-size: clamp(1rem, 5vw, 2rem);
             cursor: pointer;
-            box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.6);
             transition: transform 0.1s;
             z-index: 10;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         #btn-teste:active {
