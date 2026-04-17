@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Termômetro do Macho Gourmet</title>
+    <style>
+        :root {
+            --bg: #f4f4f9;
+            --primary: #2c3e50;
+            --accent: #e74c3c;
+            --alfa: #27ae60;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--bg);
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 40px;
+            max-width: 900px;
+            width: 100%;
+            position: relative;
+        }
+
+        .list-section {
+            flex: 2;
+        }
+
+        h2 {
+            margin-top: 0;
+        }
+
+        .item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            background: #fafafa;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+
+        .item input[type="checkbox"] {
+            margin-right: 15px;
+            transform: scale(1.3);
+            cursor: pointer;
+        }
+
+        .item span {
+            flex-grow: 1;
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .btn-del {
+            background: none;
+            border: none;
+            color: #bbb;
+            cursor: pointer;
+            font-weight: bold;
+            padding: 0 10px;
+            font-size: 16px;
+        }
+
+        .btn-del:hover {
+            color: var(--accent);
+        }
+
+        .add-box {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            border-top: 2px solid #eee;
+            padding-top: 15px;
+        }
+
+        input[type="text"] {
+            flex-grow: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary);
+        }
+
+        button#add-btn {
+            padding: 10px 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Termômetro */
+        .gauge-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+        }
+
+        .thermometer-outer {
+            width: 50px;
+            height: 350px;
+            background: #eee;
+            border-radius: 25px;
+            position: relative;
+            border: 4px solid #333;
+            padding: 4px;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        #mercury {
+            width: 100%;
+            height: 0%;
+            background: linear-gradient(to top, #2ecc71, #f1c40f, #e67e22, #e74c3c);
+            border-radius: 20px;
+            position: absolute;
+            bottom: 4px;
+            left: 4px;
+            width: calc(100% - 8px);
+            transition: height 0.6s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+        }
+
+        .status-msg {
+            margin-top: 25px;
+            font-weight: 900;
+            text-align: center;
+            color: var(--primary);
+            font-size: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Modal */
+        #modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000);
+            background-size: 400%;
+            padding: 60px;
+            border-radius: 30px;
+            text-align: center;
+            color: white;
+            animation: rainbow 5s linear infinite;
+            box-shadow: 0 0 50px rgba(255, 255, 255, 0.2);
+        }
+
+        @keyframes rainbow {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .close-btn {
+            margin-top: 30px;
+            padding: 12px 30px;
+            background: white;
+            color: #333;
+            border: none;
+            cursor: pointer;
+            border-radius: 50px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        /* Otimização para Mobile */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                flex-direction: column-reverse; /* Termômetro no topo para ver o progresso */
+                gap: 20px;
+                padding: 20px;
+                border-radius: 0;
+            }
+
+            .gauge-section {
+                position: relative;
+                top: 0;
+                width: 100%;
+                margin-bottom: 10px;
+                padding-bottom: 20px;
+                border-bottom: 2px solid #eee;
+            }
+
+            .thermometer-outer {
+                height: 180px; /* Altura reduzida para mobile */
+                width: 45px;
+            }
+
+            .modal-content {
+                padding: 30px;
+                width: 95%;
+            }
+
+            .modal-content h1 {
+                font-size: 1.8rem !important;
+            }
+
+            .add-box {
+                flex-direction: column;
+            }
+
+            #add-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="list-section">
+            <h2 style="color: var(--primary)">Checklist do Gay</h2>
+            <div id="list-container"></div>
+            <div class="add-box">
+                <input type="text" id="new-item" placeholder="Ex: Usa hidratante de cutícula...">
+                <button id="add-btn">Incluir</button>
+            </div>
+        </div>
+
+        <div class="gauge-section">
+            <div class="thermometer-outer">
+                <div id="mercury"></div>
+            </div>
+            <div id="status" class="status-msg">Macho Alfa</div>
+        </div>
+    </div>
+
+    <div id="modal">
+        <div class="modal-content">
+            <h1 style="font-size: 50px; margin: 0;">🌈 ALERTA MÁXIMO 🌈</h1>
+            <p style="font-size: 28px; font-weight: bold; margin: 10px 0;">UMA BICHONA IDENTIFICADA</p>
+            <button class="close-btn" onclick="closeModal()">Fechar</button>
+        </div>
+    </div>
+
+    <script>
+        let frases = [
+            "Faz churrasco de luva (para não sujar as mãos)",
+            "Não come muita fritura (porque tem muito colesterol)",
+            "Gosta de sal aromatizado (porque é mais saboroso)",
+            "Faz xixi sentado (porque é mais prático)",
+            "Passa botox (para cuidar da pele. Lisinha!)",
+            "Dirigi um hatch compacto (para evitar poluição do meio ambiente)",
+            "Passa perfume para ir na academia (treinar cheirosa)",
+            "Seca o cabelo com escova para deixar volumoso (que sexy)",
+            "Gosta de carro com bastante porta objetos",
+            "Tira selfie na academia (para postar foto de biquinho)",
+            "Gosta/gostava de chamar um amigo para dormir em casa (migo!)",
+            "Depila atrás (possivelmente querendo uma visita)",
+            "Gosta de crossfit (para poder gritar e jogar os pesos)",
+            "Usa calça apertada e colorida (por ser mais estiloso)",
+            "Pede para tirar a gordura da carne (ui!)",
+            "Gosta de carro elétrico (porque o barulho do motor incomoda)",
+            "Lava e passa a roupa de casa para não cansar a esposa",
+            "Prefere peito de frago a tulipinha",
+        ];
+
+        const listContainer = document.getElementById('list-container');
+        const mercury = document.getElementById('mercury');
+        const statusText = document.getElementById('status');
+        const modal = document.getElementById('modal');
+
+        function update() {
+            const checks = document.querySelectorAll('input[type="checkbox"]');
+            const checkedCount = Array.from(checks).filter(c => c.checked).length;
+
+            // Lógica do Termômetro: 5 marcados = 100%
+            let displayPercentage = (checkedCount / 6) * 100;
+            if (displayPercentage > 100) displayPercentage = 100; // Trava no topo
+
+            mercury.style.height = displayPercentage + "%";
+
+            // Regras de Mensagens
+            if (checkedCount === 0) {
+                statusText.innerText = "Macho";
+                statusText.style.color = "#27ae60";
+            } else if (checkedCount === 2) {
+                statusText.innerText = "Tendência Fresca";
+                statusText.style.color = "#f1c40f";
+            } else if (checkedCount === 3) {
+                statusText.innerText = "Tendências Gays Preocupantes";
+                statusText.style.color = "#e67e22";
+            } else if (checkedCount === 4) {
+                statusText.innerText = "Bicha sob controle";
+                statusText.style.color = "#d35400";
+            } else if (checkedCount === 5) {
+                statusText.innerText = "Bicha assumida";
+                statusText.style.color = "#d35400";
+            } else if (checkedCount >= 6) {
+                statusText.innerText = "Gay sem cura";
+                statusText.style.color = "#e74c3c";
+                modal.style.display = 'flex';
+            } else {
+                statusText.innerText = "Em observação...";
+            }
+        }
+
+        function renderList() {
+            listContainer.innerHTML = '';
+            frases.forEach((frase, index) => {
+                const div = document.createElement('div');
+                div.className = 'item';
+                div.innerHTML = `
+                <input type="checkbox" onchange="update()">
+                <span>${frase}</span>
+                <button class="btn-del" onclick="removeFrase(${index})">×</button>
+            `;
+                listContainer.appendChild(div);
+            });
+            update();
+        }
+
+        function removeFrase(index) {
+            frases.splice(index, 1);
+            renderList();
+        }
+
+        document.getElementById('add-btn').onclick = () => {
+            const input = document.getElementById('new-item');
+            if (input.value.trim()) {
+                frases.push(input.value.trim());
+                input.value = '';
+                renderList();
+            }
+        };
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        // Inicialização
+        renderList();
+    </script>
+
+</body>
+
+</html>
