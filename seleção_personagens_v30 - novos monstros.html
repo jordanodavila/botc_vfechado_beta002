@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BOTC – Narrador</title>
+  <!-- <img src="numero_jogadores.png" alt="Imagem local"> -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 10px;
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    .section {
+      margin-bottom: 20px;
+    }
+
+    .character {
+      border-bottom: 1px solid #ddd;
+      padding: 8px 0;
+    }
+
+    .character small {
+      color: #555;
+      display: block;
+    }
+
+    input[type="text"] {
+      margin-top: 5px;
+      width: 95%;
+    }
+
+    button {
+      padding: 10px;
+      margin: 5px 0;
+      width: 100%;
+    }
+
+    .card {
+      border-radius: 6px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+
+    .Aldeão {
+      background: #2b9453;
+    }
+
+    .Forasteiro {
+      background: #2280a9;
+    }
+
+    .Minion {
+      background: #b62937;
+    }
+
+    .Evil {
+      background: #e80d0d;
+    }
+
+    #snackbar {
+      visibility: hidden;
+      background: #333;
+      color: #fff;
+      text-align: center;
+      padding: 10px;
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 5px;
+    }
+
+    #snackbar.show {
+      visibility: visible;
+    }
+
+    /* REORDENAÇÃO DE ASSENTOS */
+    .reorder-item {
+      transition: all 0.2s;
+      touch-action: manipulation;
+      /* Melhora resposta no celular */
+      cursor: pointer;
+    }
+
+    .reorder-item.selected {
+      background-color: #fff9c4 !important;
+      /* Amarelo destaque */
+      border: 2px solid #fbc02d !important;
+      transform: scale(1.02);
+    }
+
+    /* Cores do Setup */
+    .bg-aldeao {
+      background-color: rgba(46, 125, 50, 0.2);
+      border-left: 5px solid #2e7d32;
+    }
+
+    /* Verde */
+    .bg-forasteiro {
+      background-color: rgba(21, 101, 192, 0.2);
+      border-left: 5px solid #1565c0;
+    }
+
+    /* Azul */
+    .bg-minion {
+      background-color: rgba(211, 47, 47, 0.2);
+      border-left: 5px solid #d32f2f;
+    }
+
+    /* Vermelho Fraco */
+    .bg-evil {
+      background-color: rgba(183, 28, 28, 0.6);
+      border-left: 5px solid #b71c1c;
+    }
+
+    /* Vermelho Forte */
+
+    .character {
+      padding: 10px;
+      margin-bottom: 8px;
+      border-radius: 5px;
+      transition: all 0.2s;
+    }
+
+    .type-badge {
+      font-size: 0.7em;
+      text-transform: uppercase;
+      font-weight: bold;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      margin-right: 5px;
+    }
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-database-compat.js"></script>
+</head>
+
+<body>
+
+  <div class="setup-table-container" style="width: 100%; margin-top: 25px; box-sizing: border-box;">
+    <div style="padding: 20px; border: 2px solid #5D4037; border-radius: 12px; background: #FFF;">
+      <div class="section-title"
+        style="color: #5D4037; border-bottom: 2px solid #5D4037; margin-bottom: 15px; font-weight: bold;">
+        👥 Configuração da Partida (Setup)
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: center; font-family: 'Georgia', serif;">
+          <thead>
+            <tr style="background-color: #f5f5f5;">
+              <th style="border: 1px solid #ddd; padding: 10px; color: #333;">Total de Jogadores</th>
+              <th style="border: 1px solid #ddd; padding: 10px; color: #1E88E5;">Aldeões (Townsfolk)</th>
+              <th style="border: 1px solid #ddd; padding: 10px; color: #0288D1;">Forasteiros (Outsiders)</th>
+              <th style="border: 1px solid #ddd; padding: 10px; color: #B71C1C;">Minions</th>
+              <th style="border: 1px solid #ddd; padding: 10px; color: #000;">Lobisomens</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">5</td>
+              <td style="border: 1px solid #ddd; color: #1E88E5;">3</td>
+              <td style="border: 1px solid #ddd;">0</td>
+              <td style="border: 1px solid #ddd; color: #B71C1C;">1</td>
+              <td style="border: 1px solid #ddd;">1</td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">6</td>
+              <td style="border: 1px solid #ddd; color: #1E88E5;">3</td>
+              <td style="border: 1px solid #ddd;">1</td>
+              <td style="border: 1px solid #ddd; color: #B71C1C;">1</td>
+              <td style="border: 1px solid #ddd;">1</td>
+            </tr>
+            <tr style="background-color: #E3F2FD;">
+              <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">7</td>
+              <td style="border: 1px solid #ddd; color: #1E88E5;">5</td>
+              <td style="border: 1px solid #ddd;">0</td>
+              <td style="border: 1px solid #ddd; color: #B71C1C;">1</td>
+              <td style="border: 1px solid #ddd;">1</td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">8</td>
+              <td style="border: 1px solid #ddd; color: #1E88E5;">5</td>
+              <td style="border: 1px solid #ddd;">1</td>
+              <td style="border: 1px solid #ddd; color: #B71C1C;">1</td>
+              <td style="border: 1px solid #ddd;">1</td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">9</td>
+              <td style="border: 1px solid #ddd; color: #1E88E5;">5</td>
+              <td style="border: 1px solid #ddd;">2</td>
+              <td style="border: 1px solid #ddd; color: #B71C1C;">1</td>
+              <td style="border: 1px solid #ddd;">1</td>
+            </tr>
+            <tr style="background-color: #E3F2FD;">
+              <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">10</td>
+              <td style="border: 1px solid #ddd; color: #1E88E5;">7</td>
+              <td style="border: 1px solid #ddd;">0</td>
+              <td style="border: 1px solid #ddd; color: #B71C1C;">2</td>
+              <td style="border: 1px solid #ddd;">1</td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">11</td>
+              <td style="border: 1px solid #ddd; color: #1E88E5;">7</td>
+              <td style="border: 1px solid #ddd;">1</td>
+              <td style="border: 1px solid #ddd; color: #B71C1C;">2</td>
+              <td style="border: 1px solid #ddd;">1</td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">12</td>
+              <td style="border: 1px solid #ddd; color: #1E88E5;">7</td>
+              <td style="border: 1px solid #ddd;">2</td>
+              <td style="border: 1px solid #ddd; color: #B71C1C;">2</td>
+              <td style="border: 1px solid #ddd;">1</td>
+            </tr>
+            <tr style="background-color: #E3F2FD;">
+              <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">13</td>
+              <td style="border: 1px solid #ddd; color: #1E88E5;">9</td>
+              <td style="border: 1px solid #ddd;">0</td>
+              <td style="border: 1px solid #ddd; color: #B71C1C;">3</td>
+              <td style="border: 1px solid #ddd;">1</td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">14</td>
+              <td style="border: 1px solid #ddd; color: #1E88E5;">9</td>
+              <td style="border: 1px solid #ddd;">1</td>
+              <td style="border: 1px solid #ddd; color: #B71C1C;">3</td>
+              <td style="border: 1px solid #ddd;">1</td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">15+</td>
+              <td style="border: 1px solid #ddd; color: #1E88E5;">9</td>
+              <td style="border: 1px solid #ddd;">2</td>
+              <td style="border: 1px solid #ddd; color: #B71C1C;">3</td>
+              <td style="border: 1px solid #ddd;">1</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size: 11px; color: #777; margin-top: 10px; font-style: italic;">* Baseado nas regras oficiais de
+        contagem de residentes.</p>
+    </div>
+  </div>
+
+  <button onclick="abrirReordenacao()" style="background-color: #2196F3; color: white; margin-top: 10px;">
+    🔄 Ajustar Assentos (Pós-Sorteio)
+  </button>
+
+  <!-- AJUSTAR POSIÇÃO NA MESA -->
+  <div id="reorder-container"
+    style="display:none; background: #fff; border: 2px solid #5D4037; padding: 15px; border-radius: 12px; margin-top: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+    <h3 style="color: #5D4037; margin-top: 0;">🔄 Reordenar Assentos</h3>
+    <p style="font-size: 12px; color: #666;">Use as setas para organizar os jogadores conforme a posição física na mesa
+      (sentido horário).</p>
+
+    <div id="reorder-list" style="margin-bottom: 15px;">
+    </div>
+
+    <button onclick="salvarNovaOrdem()" style="background-color: #4CAF50; color: white;">💾 Salvar Nova Ordem</button>
+    <button onclick="document.getElementById('reorder-container').style.display='none'"
+      style="background-color: #9e9e9e; color: white;">Cancelar</button>
+  </div>
+
+  <button onclick="limparPartidaFirebase()" style="background-color: #f44336; color: white; margin-top: 10px;">
+    🗑️ Resetar Partida no Firebase
+  </button>
+
+  <button onclick="editarPartidaFirebase()" style="background-color: #ff9800; color: white; margin-top: 10px;">
+    ✏️ Editar Partida do Firebase
+  </button>
+
+
+  <div id="sorteio-container"
+    style="background: #f0f0f0; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px dashed #5D4037;">
+    <h3>🎲 Sorteio Rápido</h3>
+    <label>Cole os nomes dos jogadores (um por linha):</label><br>
+    <textarea id="listaNomesSorteio" rows="6" style="width: 95%; margin-top: 10px;"
+      placeholder="Ex:&#10;João&#10;Maria&#10;Pedro..."></textarea>
+    <button onclick="gerarSorteioAleatorio()" style="background-color: #4CAF50; color: white; margin-top: 10px;">
+      🔀 Sortear e Preencher
+    </button>
+  </div>
+
+  <div id="screen1">
+    <h2>Configuração da Partida</h2>
+
+    <label>Número de jogadores</label>
+    <input type="number" id="numPlayers" value="5">
+
+    <div id="characters"></div>
+
+    <button onclick="validateSetup()">Avançar</button>
+  </div>
+
+  <!-- <div id="screen2" style="display:none">
+  <h2>Ordem Noturna – Noite 1</h2>
+  <div id="orderList"></div>
+  <button onclick="goBack()">Voltar</button>
+  <button onclick="saveGame()">Salvar Jogo</button>
+</div> -->
+
+  <div id="screen2" style="display:none">
+    <h2>Ordem Noturna – Noite 1</h2>
+    <div id="orderList"></div>
+    <div id="drunk-selection-container"
+      style="margin-top: 15px; padding: 10px; border: 1px solid #795548; border-radius: 8px; background-color: #efebe9;">
+      <label for="selectDrunk" style="color: #5d4037; font-weight: bold;">🧧 Quem é o Bêbado (Drunk)?</label>
+      <select id="selectDrunk">
+        <option value="">Ninguém é o Bêbado</option>
+      </select>
+      <p style="font-size: 11px; color: #795548; margin-top: 5px;">* Escolha qual Aldeão terá o estado envenenado até o
+        fim da partida.</p>
+    </div>
+    <button onclick="goBack()">Voltar</button>
+    <button onclick="saveGame()">Salvar Jogo (Navegador)</button> <button onclick="downloadGame()">Baixar Backup
+      JSON</button>
+    <button onclick="enviarParaFirebase()" style="background-color: #673ab7; color: white;">
+      🚀 Salvar no Firebase
+    </button>
+  </div>
+
+  <div id="lista-senhas"></div>
+
+  <div id="snackbar"></div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDxCSYH31D5NjuvtTOpqs4XLUaee2fZ_iU",
+      authDomain: "werewolf-877af.firebaseapp.com",
+      projectId: "werewolf-877af",
+      storageBucket: "werewolf-877af.firebasestorage.app",
+      messagingSenderId: "177329283782",
+      appId: "1:177329283782:web:30a6c6cf8732df0f802dc7"
+    };
+
+    // Inicialização
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const PERSONAGENS = [
+      { tipo: "Aldeão", nome: "Lavadeira", habilidade: "Você começa sabendo que 1 de 2 jogadores é Aldeão e qual o personagem." },
+      { tipo: "Aldeão", nome: "Bibliotecário", habilidade: "Você começa sabendo que 1 de 2 jogadores é um Forasteiro e qual o personagem (Ou que zero estão em jogo.)" },
+      { tipo: "Aldeão", nome: "Investigador", habilidade: "Você começa sabendo que 1 de 2 jogadores é um Minion e qual o personagem." },
+      { tipo: "Aldeão", nome: "Chefe", habilidade: "Você começa sabendo quantos pares de jogadores do mal existem." },
+      { tipo: "Aldeão", nome: "Empata", habilidade: "Cada noite você aprende quantos de seus 2 vizinhos vivos são maus." },
+      { tipo: "Aldeão", nome: "Cartomante", habilidade: "Cada noite você escolhe 2 jogadores e aprende se qualquer um deles é um Lobisomem. Há um bom jogador que se aparecerá como um Lobisomem para você." },
+      { tipo: "Aldeão", nome: "Coveiro", habilidade: "Cada noite (exceto a primeira) você aprende qual personagem morreu por execução hoje." },
+      { tipo: "Aldeão", nome: "Monge", habilidade: "Cada noite (exceto a primeira) você escolhe um jogador (não você mesmo): ele estará a salvo do Lobisomem por uma noite." },
+      { tipo: "Aldeão", nome: "Guardião", habilidade: "Se você morrer à noite, será acordado para escolher um jogador e aprender o personagem dele." },
+      { tipo: "Aldeão", nome: "Virgem", habilidade: "Na primeira vez em que você é indicado, se o nomeador for um Aldeão, ele é executado imediatamente." },
+      { tipo: "Aldeão", nome: "Matador", habilidade: "Uma vez por jogo, durante o dia, escolha publicamente um jogador: se ele for o Lobisomem, ele morre." },
+      { tipo: "Aldeão", nome: "Soldado", habilidade: "Você está a salvo do Lobisomem." },
+      { tipo: "Aldeão", nome: "Prefeito", habilidade: "Se apenas três jogadores viverem e nenhuma execução ocorrer, sua equipe vence.\n Se você morrer à noite, outro jogador do bem pode morrer no seu lugar." },
+      { tipo: "Aldeão", nome: "Vovó", habilidade: "Você começa sabendo um jogador bom e o personagem dele.\nSe o Demônio matá-lo, você morre também." },
+      { tipo: "Aldeão", nome: "Marinheiro", habilidade: "Cada noite, escolha um jogador vivo: você ou ele ficará bêbado até o anoitecer. Você não pode morrer enquanto sóbrio." },
+      // { tipo: "Aldeão", nome: "Camareira", habilidade: "Cada noite, escolha 2 jogadores vivos (não você mesmo): você descobrirá quantos acordaram esta noite devido à sua habilidade." },
+      { tipo: "Aldeão", nome: "Estalajadeiro", habilidade: "Cada noite, escolha 2 jogadores: eles estão a salvo do Demônio, mas um deles fica bêbado até o próximo anoitecer." },
+      { tipo: "Aldeão", nome: "Exorcista", habilidade: "Cada noite (exceto a primeira), escolha um jogador (diferente da noite anterior): o Mal, se escolhido, descobre quem você é e então não acorda esta noite." },
+      { tipo: "Aldeão", nome: "Cortesão", habilidade: "Uma vez por jogo, à noite, escolha um personagem (não um jogador): se ele estiver no jogo, ele fica bêbado por 3 dias e 3 noites." },
+      { tipo: "Aldeão", nome: "Apostador", habilidade: "Cada noite, escolha um jogador e um personagem: se esse jogador não for esse personagem, você morre." },
+      { tipo: "Aldeão", nome: "Professor", habilidade: "Uma vez por jogo, à noite, escolha um jogador morto: se ele for um Aldeão, ele irá ressuscitar." },
+      { tipo: "Aldeão", nome: "Menestrel", habilidade: "Se um Minion morrer por execução, todos os outros jogadores (exceto você) ficam bêbados até o próximo anoitecer." },
+      { tipo: "Aldeão", nome: "Dama do Chá", habilidade: "Se seus dois vizinhos vivos forem aldeões, eles não podem morrer enquanto você estiver vivo." },
+      { tipo: "Aldeão", nome: "Pacifista", habilidade: "Jogadores do bem podem não morrer ao serem executados." },
+      { tipo: "Aldeão", nome: "Bobo", habilidade: "Na primeira vez em que você for morrer, você não morre." },
+      { tipo: "Forasteiro", nome: "Mordomo", habilidade: "Cada noite você escolhe um jogador (não você mesmo): amanhã, você só poderá votar se esta pessoa escolhida votar." },
+      // {tipo: "Forasteiro", nome: "Drunk", habilidade: "Você não sabe que é o bêbado. Você acha que é um personagem de um Aldeão, mas não é."},
+      { tipo: "Forasteiro", nome: "Recluso", habilidade: "Você pode se aparecer como mal, como um minion ou Lobisomem, mesmo que morto." },
+      { tipo: "Forasteiro", nome: "Santo", habilidade: "Se você morrer por execução, sua equipe perde." },
+      { tipo: "Forasteiro", nome: "Lunático", habilidade: "Você pensa que é o Lobisomem, mas não é. O Lobisomem sabe quem você é e quem você escolhe à noite." },
+      { tipo: "Minion", nome: "Envenenador", habilidade: "Cada noite, escolha um jogador: ele estará envenenado à noite e à amanhã." },
+      { tipo: "Minion", nome: "Espião", habilidade: "Cada noite, você vê o grimório. Você pode parecer ser um Aldeão ou Forasteiro, mesmo que morto." },
+      { tipo: "Minion", nome: "Mulher Escarlate", habilidade: "Se houver 5 ou mais jogadores vivos (viajantes não contam) e o Lobisomem morrer, você se torna o Lobisomem." },
+      { tipo: "Minion", nome: "Barão", habilidade: "Adiciona 2 Forasteiros extras ao jogo." },
+      { tipo: "Minion", nome: "Padrinho", habilidade: "Você sabe quais Forasteiros estão no jogo. Se um Forasteiro morrer durante o dia, você mata alguém à noite." },
+      { tipo: "Minion", nome: "Advogado do Diabo", habilidade: "Cada noite, escolha um jogador (diferente da noite anterior): se ele for executado amanhã, ele não morre." },
+      { tipo: "Minion", nome: "Assassino", habilidade: "Uma vez por jogo, à noite, escolha um jogador: ele morre, mesmo que esteja protegido." },
+      { tipo: "Minion", nome: "Gênio do Crime", habilidade: "Se o Demônio morrer por execução (encerrando o jogo), jogue por mais 1 dia. Se um jogador for executado em seguida, o time do mal vence." },
+      { tipo: "Evil", nome: "Lobisomem", habilidade: "Cada noite (exceto a primeira), escolha um jogador para morrer." },
+      { tipo: "Evil", nome: "Geryon", habilidade: "Cada noite, escolha um jogador para morrer. Se você não escolher ninguém, na próxima noite escolha 3 jogadores." },
+      { tipo: "Evil", nome: "Kraken", habilidade: "Cada noite, escolha 2 jogadores para morrer. Um jogador morto por você pode ressuscitar na noite seguinte." },
+      { tipo: "Evil", nome: "Pukka", habilidade: "Cada noite, escolha um jogador: ele fica envenenado. O jogador envenenado anteriormente morre e fica saudável." },
+      { tipo: "Evil", nome: "Zombie", habilidade: "Se você morrer pela primeira vez, você parece morto, mas ainda está vivo. Se ninguém morrer à noite, você pode atacar." },
+    ];
+
+    const NIGHT_ORDER_1 = [
+      "Lobisomem", "Espião", "Envenenador", "Mulher Escarlate", "Mordomo", "Monge", "Empata", "Cartomante", "Investigador", "Bibliotecário", "Lavadeira", "Drunk", "Coveiro", "Guardião"]
+
+    const charactersDiv = document.getElementById("characters");
+
+    PERSONAGENS.forEach(p => {
+      const div = document.createElement("div");
+
+      // Define a classe de cor baseada no tipo
+      let corClasse = "";
+      switch (p.tipo) {
+        case "Aldeão": corClasse = "bg-aldeao"; break;
+        case "Forasteiro": corClasse = "bg-forasteiro"; break;
+        case "Minion": corClasse = "bg-minion"; break;
+        case "Evil": corClasse = "bg-evil"; break;
+      }
+
+      div.className = `character ${corClasse}`;
+      div.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <label style="cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                <input type="checkbox" data-name="${p.nome}" data-tipo="${p.tipo}">
+                <span><span class="type-badge">${p.tipo}</span> <strong>${p.nome}</strong></span>
+            </label>
+        </div>
+        <div style="margin-top: 5px;">
+            <small style="display: block; line-height: 1.2; color: #black;">${p.habilidade}</small>
+            <input type="text" placeholder="Nome do jogador" 
+                   style="display:none; width: 100%; margin-top: 8px; padding: 5px; border-radius: 4px; border: 1px solid #555; background: #222; color: white;">
+        </div>
+    `;
+
+      const chk = div.querySelector("input[type=checkbox]");
+      const txt = div.querySelector("input[type=text]");
+
+      chk.onchange = () => {
+        txt.style.display = chk.checked ? "block" : "none";
+        if (!chk.checked) txt.value = "";
+
+        // Efeito visual opcional: destaca quando selecionado
+        div.style.filter = chk.checked ? "brightness(1.2)" : "brightness(1)";
+        div.style.boxShadow = chk.checked ? "0 0 10px rgba(255,255,255,0.1)" : "none";
+      };
+
+      charactersDiv.appendChild(div);
+    });
+
+    function showMsg(msg, error = false) {
+      const sb = document.getElementById("snackbar");
+      sb.innerText = msg;
+      sb.style.background = error ? "#E53935" : "#4CAF50";
+      sb.className = "show";
+      setTimeout(() => sb.className = "", 3000);
+    }
+
+    function limparPartidaFirebase() {
+      if (confirm("Tem certeza que deseja apagar todos os dados da partida atual?")) {
+        db.ref('partida').remove()
+          .then(() => {
+            showMsg("🔥 Árvore 'partida' removida com sucesso!");
+          })
+          .catch((err) => {
+            showMsg("Erro ao limpar: " + err, true);
+          });
+      }
+    }
+
+    function editarPartidaFirebase() {
+      showMsg("Carregando dados do Firebase...");
+
+      db.ref('partida/jogadores').once('value').then((snapshot) => {
+        const jogadoresFirebase = snapshot.val();
+
+        if (!jogadoresFirebase) {
+          showMsg("Nenhuma partida encontrada no Firebase.", true);
+          return;
+        }
+
+        // 1. Resetar estados anteriores
+        document.querySelectorAll(".character").forEach(div => {
+          const chk = div.querySelector("input[type=checkbox]");
+          const txt = div.querySelector("input[type=text]");
+          chk.checked = false;
+          txt.value = "";
+          txt.style.display = "none";
+        });
+
+        let contador = 0;
+        let listaNomes = []; // Array para armazenar os nomes para o campo de sorteio
+
+        // 2. Mapear dados para a tela e para a lista de nomes
+        for (let id in jogadoresFirebase) {
+          const dados = jogadoresFirebase[id];
+          const nomeJogador = dados.jogador.toUpperCase(); // Garante o padrão em maiúsculas
+
+          listaNomes.push(nomeJogador);
+
+          const checkbox = document.querySelector(`input[data-name="${dados.personagem}"]`);
+          if (checkbox) {
+            const divPai = checkbox.closest('.character');
+            const campoTexto = divPai.querySelector('input[type="text"]');
+
+            checkbox.checked = true;
+            campoTexto.value = nomeJogador;
+            campoTexto.style.display = "block";
+            contador++;
+          }
+        }
+
+        // 3. Preencher TAMBÉM o campo de sorteio com os nomes encontrados
+        const campoSorteio = document.getElementById("listaNomesSorteio");
+        if (campoSorteio) {
+          campoSorteio.value = listaNomes.join('\n');
+        }
+
+        // 4. Atualizar UI
+        document.getElementById("numPlayers").value = contador;
+        document.getElementById("screen1").style.display = "block";
+        document.getElementById("screen2").style.display = "none";
+
+        showMsg("Dados e lista de nomes carregados!");
+
+      }).catch((err) => {
+        showMsg("Erro ao buscar dados: " + err, true);
+      });
+    }
+
+    function gerarSorteioAleatorio() {
+      const texto = document.getElementById("listaNomesSorteio").value.trim();
+      if (!texto) {
+        showMsg("Insira os nomes dos jogadores primeiro.", true);
+        return;
+      }
+
+      // Captura os nomes, remove espaços extras e transforma em MAIÚSCULAS
+      const nomes = texto.split('\n')
+        .map(n => n.trim().toUpperCase())
+        .filter(n => n !== "");
+
+      const totalJogadores = nomes.length;
+
+      if (totalJogadores < 5) {
+        showMsg("O jogo precisa de no mínimo 5 jogadores.", true);
+        return;
+      }
+
+      // Define a composição baseada na sua tabela de setup
+      let composicao = { aldeao: 0, forasteiro: 0, minion: 0, lobisomem: 1 };
+
+      if (totalJogadores === 5) { composicao.aldeao = 3; composicao.forasteiro = 0; composicao.minion = 1; }
+      else if (totalJogadores === 6) { composicao.aldeao = 3; composicao.forasteiro = 1; composicao.minion = 1; }
+      else if (totalJogadores === 7) { composicao.aldeao = 5; composicao.forasteiro = 0; composicao.minion = 1; }
+      else if (totalJogadores === 8) { composicao.aldeao = 5; composicao.forasteiro = 1; composicao.minion = 1; }
+      else if (totalJogadores === 9) { composicao.aldeao = 5; composicao.forasteiro = 2; composicao.minion = 1; }
+      else if (totalJogadores === 10) { composicao.aldeao = 7; composicao.forasteiro = 0; composicao.minion = 2; }
+      else if (totalJogadores === 11) { composicao.aldeao = 7; composicao.forasteiro = 1; composicao.minion = 2; }
+      else if (totalJogadores === 12) { composicao.aldeao = 7; composicao.forasteiro = 2; composicao.minion = 2; }
+      else if (totalJogadores >= 13) {
+        composicao.minion = 3;
+        composicao.forasteiro = (totalJogadores === 13) ? 0 : (totalJogadores === 14 ? 1 : 2);
+        composicao.aldeao = totalJogadores - composicao.minion - composicao.forasteiro - 1;
+      }
+
+      // 1. Embaralhar nomes
+      nomes.sort(() => Math.random() - 0.5);
+
+      // 2. Selecionar Personagens Disponíveis por Tipo
+      const aldeoesDisponiveis = PERSONAGENS.filter(p => p.tipo === "Aldeão").sort(() => Math.random() - 0.5);
+      const forasteirosDisponiveis = PERSONAGENS.filter(p => p.tipo === "Forasteiro").sort(() => Math.random() - 0.5);
+      const minionsDisponiveis = PERSONAGENS.filter(p => p.tipo === "Minion").sort(() => Math.random() - 0.5);
+      const lobisomem = PERSONAGENS.find(p => p.nome === "Lobisomem");
+
+      let sorteioFinal = [];
+
+      // 3. Atribuir personagens aos nomes
+      for (let i = 0; i < composicao.aldeao; i++) sorteioFinal.push({ nome: nomes.pop(), perso: aldeoesDisponiveis.pop() });
+      for (let i = 0; i < composicao.forasteiro; i++) sorteioFinal.push({ nome: nomes.pop(), perso: forasteirosDisponiveis.pop() });
+      for (let i = 0; i < composicao.minion; i++) sorteioFinal.push({ nome: nomes.pop(), perso: minionsDisponiveis.pop() });
+      sorteioFinal.push({ nome: nomes.pop(), perso: lobisomem });
+
+      // 4. Limpar campos atuais na tela
+      document.querySelectorAll(".character").forEach(div => {
+        const chk = div.querySelector("input[type=checkbox]");
+        const txt = div.querySelector("input[type=text]");
+        chk.checked = false;
+        txt.value = "";
+        txt.style.display = "none";
+      });
+
+      // 5. Preencher a tela com o resultado do sorteio
+      sorteioFinal.forEach(item => {
+        const checkbox = document.querySelector(`input[data-name="${item.perso.nome}"]`);
+        if (checkbox) {
+          const divPai = checkbox.closest('.character');
+          const campoTexto = divPai.querySelector('input[type="text"]');
+          checkbox.checked = true;
+          campoTexto.value = item.nome;
+          campoTexto.style.display = "block";
+        }
+      });
+
+      document.getElementById("numPlayers").value = totalJogadores;
+      showMsg("Sorteio concluído!");
+    }
+
+    function validateSetup() {
+      const num = parseInt(document.getElementById("numPlayers").value);
+      const selected = [];
+
+      document.querySelectorAll(".character").forEach(div => {
+        const chk = div.querySelector("input[type=checkbox]");
+        const txt = div.querySelector("input[type=text]");
+
+        if (chk.checked) {
+          if (!txt.value) {
+            showMsg("Preencha todos os nomes.", true);
+            return;
+          }
+
+          // Busca as informações originais do array constante
+          const info = PERSONAGENS.find(p => p.nome === chk.dataset.name);
+
+          // Lógica para ajustar o TIPO (Plural vs Singular) conforme seu exemplo
+          let tipoFormatado = info.tipo;
+          // if (info.tipo !== "Aldeão") {
+          //    tipoFormatado = info.tipo + "s"; // Viram Lobisomens, Minions, Forasteiros
+          //}
+
+          // Monta o objeto no formato solicitado
+          selected.push({
+            personagem: info.nome, // Mudou de 'nome' para 'personagem'
+            tipo: tipoFormatado,
+            jogador: txt.value,
+            habilidade: info.habilidade
+          });
+        }
+      });
+
+      if (selected.length !== num) {
+        showMsg(`Selecione exatamente ${num} personagens.`, true);
+        return;
+      }
+
+      if (!selected.some(p => p.tipo === "Evil")) {
+        showMsg("O jogo precisa de um monstro.", true);
+        return;
+      }
+
+      // Cria a estrutura final do JSON
+      const estruturaFinal = {
+        num_jogadores: num,
+        personagens_selecionados: selected
+      };
+
+      // Salva no LocalStorage
+      localStorage.setItem("setup_botc", JSON.stringify(estruturaFinal));
+
+      atualizarListaDrunk();
+
+      // Avança para a tela 2
+      buildScreen2(estruturaFinal);
+    }
+
+    function buildScreen2(jogoData) {
+      document.getElementById("screen1").style.display = "none";
+      document.getElementById("screen2").style.display = "block";
+
+      const list = document.getElementById("orderList");
+      list.innerHTML = "";
+
+      // Extrai o array de dentro do objeto novo
+      const data = jogoData.personagens_selecionados;
+
+      // Ordena usando 'personagem' em vez de 'nome'
+      data.sort((a, b) => {
+        return NIGHT_ORDER_1.indexOf(a.personagem) - NIGHT_ORDER_1.indexOf(b.personagem);
+      });
+
+      data.forEach((p, i) => {
+        const div = document.createElement("div");
+
+        // Para a classe CSS funcionar, precisamos remover o 's' do tipo (ex: Demons -> Demon)
+        // Se você não tiver CSS para "Demons", usamos essa lógica para pegar o original
+        let cssClass = p.tipo;
+        // if(p.tipo.endsWith('s') && p.tipo !== "Aldeão"){
+        //     cssClass = p.tipo.slice(0, -1);
+        // }
+
+        div.className = `card ${cssClass}`;
+        div.innerHTML = `
+      <strong>${i + 1}. ${p.personagem} (${p.tipo})</strong><br>
+      Jogador: ${p.jogador}<br>
+      <small>${p.habilidade}</small>
+    `;
+        list.appendChild(div);
+      });
+    }
+
+    function goBack() {
+      document.getElementById("screen2").style.display = "none";
+      document.getElementById("screen1").style.display = "block";
+    }
+
+    //#region REORDENAÇÃO DOS ASSENTOS
+    let primeiroSelecionado = null;
+
+    // Função para carregar os jogadores do Firebase e abrir a interface
+    function abrirReordenacao() {
+      showMsg("Lendo grimório...");
+      db.ref('partida/jogadores').once('value').then((snapshot) => {
+        const jogadores = [];
+        snapshot.forEach((child) => {
+          jogadores.push({ id: child.key, ...child.val() });
+        });
+
+        jogadores.sort((a, b) => a.posicao - b.posicao);
+
+        const container = document.getElementById('reorder-list');
+        container.innerHTML = "";
+        primeiroSelecionado = null; // Reseta seleção
+
+        jogadores.forEach((p, index) => {
+          const item = document.createElement("div");
+          item.className = "reorder-item";
+          item.style = "display: flex; align-items: center; padding: 15px; border: 1px solid #ddd; margin-bottom: 8px; border-radius: 10px; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.05);";
+          item.dataset.id = p.id;
+
+          item.innerHTML = `
+                <span style="font-weight:bold; margin-right:15px; color:#fbc02d;">${index}</span>
+                <div style="flex-grow:1;">
+                    <strong>${p.jogador}</strong><br>
+                    <small style="color: #666;">${p.personagem}</small>
+                </div>
+                <div style="font-size: 20px;">🔄</div>
+            `;
+
+          item.onclick = () => tratarCliqueTroca(item);
+          container.appendChild(item);
+        });
+
+        document.getElementById('reorder-container').style.display = 'block';
+      });
+    }
+
+    // Função para mover os elementos visualmente na lista
+    function tratarCliqueTroca(elemento) {
+      if (!primeiroSelecionado) {
+        // Seleciona o primeiro
+        primeiroSelecionado = elemento;
+        elemento.classList.add('selected');
+      } else if (primeiroSelecionado === elemento) {
+        // Desmarca se clicar no mesmo
+        primeiroSelecionado.classList.remove('selected');
+        primeiroSelecionado = null;
+      } else {
+        // TROCA OS DOIS DE LUGAR NO DOM
+        const lista = document.getElementById('reorder-list');
+        const proximoDoPrimeiro = primeiroSelecionado.nextSibling;
+        const proximoDoSegundo = elemento.nextSibling;
+
+        // Se eles forem vizinhos, a lógica de inserção muda um pouco
+        if (proximoDoPrimeiro === elemento) {
+          lista.insertBefore(elemento, primeiroSelecionado);
+        } else if (proximoDoSegundo === primeiroSelecionado) {
+          lista.insertBefore(primeiroSelecionado, elemento);
+        } else {
+          // Troca padrão
+          lista.insertBefore(elemento, proximoDoPrimeiro);
+          lista.insertBefore(primeiroSelecionado, proximoDoSegundo);
+        }
+
+        // Limpa seleção e atualiza números
+        primeiroSelecionado.classList.remove('selected');
+        primeiroSelecionado = null;
+        atualizarNumerosVisuais();
+      }
+    }
+
+    function atualizarNumerosVisuais() {
+      document.querySelectorAll('.reorder-item span:first-child').forEach((el, idx) => {
+        el.innerText = idx;
+      });
+    }
+
+    // Função para salvar as novas posições no Firebase
+    function salvarNovaOrdem() {
+      const itens = document.querySelectorAll('.reorder-item');
+      const updates = {};
+
+      itens.forEach((item, index) => {
+        const nomeChave = item.dataset.id;
+        updates[`partida/jogadores/${nomeChave}/posicao`] = index;
+      });
+
+      db.ref().update(updates)
+        .then(() => {
+          showMsg("✅ Posições atualizadas com sucesso!");
+          document.getElementById('reorder-container').style.display = 'none';
+        })
+        .catch(err => showMsg("Erro ao salvar ordem: " + err, true));
+    }
+    //#endregion
+
+    function saveGame() {
+      showMsg("Jogo salvo no navegador!");
+    }
+
+    function downloadGame() {
+      // 1. Recupera os dados salvos no navegador (LocalStorage)
+      const jsonString = localStorage.getItem("setup_botc");
+
+      if (!jsonString) {
+        showMsg("Nenhum jogo salvo para baixar.", true);
+        return;
+      }
+
+      // 2. Cria um Blob (objeto de arquivo) a partir da string JSON
+      const blob = new Blob([jsonString], { type: "application/json" });
+      // 3. Cria um link temporário para download
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'botc_backup_' + new Date().toISOString().slice(0, 10) + '.json'; // Nome do arquivo com data
+
+      // 4. Simula o clique no link e remove o objeto URL temporário
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      showMsg("Arquivo JSON baixado com sucesso!");
+    }
+
+    const linksGerados = {
+      "BARÃO": "https://jordanodavila.github.io/botc_vfechado/jogadores/jogo_barão_itju.html",
+      "BIBLIOTECÁRIO": "https://jordanodavila.github.io/botc_vfechado/jogadores/jogo_bibliotecário_27mp.html",
+      "CARTOMANTE": "https://jordanodavila.github.io/botc_vfechado/jogadores/jogo_cartomante_lxk0.html",
+      "CHEFE": "https://jordanodavila.github.io/botc_vfechado/jogadores/jogo_chefe_ftu1.html",
+      "COVEIRO": "https://jordanodavila.github.io/botc_vfechado/jogadores/jogo_coveiro_kstx.html",
+      "EMPATA": "https://jordanodavila.github.io/botc_vfechado/jogadores/jogo_empata_1h7p.html",
+      "ENVENENADOR": "https://jordanodavila.github.io/botc_vfechado/jogadores/jogo_envenenador_gn9a.html",
+      "ESPIÃO": "https://jordanodavila.github.io/botc_vfechado/jogadores/jogo_espião_e7lt.html",
+      "GUARDIÃO": "https://jordanodavila.github.io/botc_vfechado/jogadores/jogo_guardião_0p2d.html",
+      "INVESTIGADOR": "https://jordanodavila.github.io/botc_vfechado/jogadores/jogo_investigador_sl40.html",
+      "LAVADEIRA": "https://jordanodavila.github.io/botc_vfechado/jogadores/jogo_lavadeira_nk4c.html",
+      "LOBISOMEM": "https://jordanodavila.github.io/botc_vfechado/jogadores/jogo_lobisomem_e5lf.html",
+      "MATADOR": "https://jordanodavila.github.io/botc_vfechado/jogadores/jogo_matador_4foc.html",
+      "MONGE": "https://jordanodavila.github.io/botc_vfechado/jogadores/jogo_monge_wk6b.html",
+      "MORDOMO": "https://jordanodavila.github.io/botc_vfechado/jogadores/jogo_mordomo_duoz.html",
+      "MULHER ESCARLATE": "https://jordanodavila.github.io/botc_vfechado/jogadores/jogo_mulher_escarlate_9zej.html",
+      "PREFEITO": "https://jordanodavila.github.io/botc_vfechado/jogadores/jogo_prefeito_ksoj.html",
+      "RECLUSO": "https://jordanodavila.github.io/botc_vfechado/jogadores/jogo_recluso_2pvy.html",
+      "SANTO": "https://jordanodavila.github.io/botc_vfechado/jogadores/jogo_santo_mp7i.html",
+      "SOLDADO": "https://jordanodavila.github.io/botc_vfechado/jogadores/jogo_soldado_dhr5.html",
+      "VIRGEM": "https://jordanodavila.github.io/botc_vfechado/jogadores/jogo_virgem_qnk9.html"
+    };
+
+
+    function enviarParaFirebase() {
+      const jogoData = JSON.parse(localStorage.getItem("setup_botc"));
+      const jogadores = jogoData.personagens_selecionados;
+      const totalJogadores = jogadores.length;
+
+      const personagemDrunkEscolhido = document.getElementById('selectDrunk').value;
+
+
+      if (!jogoData || !jogoData.personagens_selecionados) {
+        showMsg("Não há dados de partida para enviar!", true);
+        return;
+      }
+
+      // --- VALIDAÇÃO DO BIBLIOTECÁRIO ---
+      const temBibliotecario = jogadores.some(p => p.personagem === "Bibliotecário");
+      const temForasteiros = jogadores.some(p => p.tipo === "Forasteiro" || p.personagem === personagemDrunkEscolhido);
+      if (temBibliotecario && !temForasteiros) {
+        // Se o Bibliotecário existe mas não há alvos, ele verá o "0" verde.
+        // Como você quer uma confirmação, usamos o confirm() para o Narrador decidir:
+        const prosseguir = confirm("⚠️ O Bibliotecário está em jogo, mas NÃO há Forasteiros (nem Bêbado) na partida.\n\nEle NÃO receberá a informação de 'ZERO'. Deseja continuar?");
+
+        if (!prosseguir) return; // Cancela o envio para o Firebase
+      }
+
+      // --- VALIDAÇÃO DO BARÃO ---
+      const temBarao = jogadores.some(p => p.personagem === "Barão");
+
+      if (temBarao) {
+        // 1. Calcula quantos forasteiros deveriam existir originalmente (sua tabela)
+        let forasteirosEsperados = 0;
+        if (totalJogadores === 6 || totalJogadores === 8 || totalJogadores === 11 || totalJogadores === 14) {
+          forasteirosEsperados = 1;
+        } else if (totalJogadores === 9 || totalJogadores === 12 || totalJogadores >= 15) {
+          forasteirosEsperados = 2;
+        }
+
+        // 2. Soma a modificação do Barão (+2)
+        const metaBarao = forasteirosEsperados + 2;
+
+        // 3. Conta quantos forasteiros REAIS estão no setup (incluindo o Bêbado)
+        const forasteirosNoSetup = jogadores.filter(p => p.tipo === "Forasteiro" || p.personagem === personagemDrunkEscolhido).length;
+
+        // 4. Se a conta não fechar, apenas avisa (sem dar return)
+        if (forasteirosNoSetup !== metaBarao) {
+          const prosseguirBarao = confirm(
+            `🍷 ALERTA DE REGRA: BARÃO\n\n` +
+            `Para ${totalJogadores} jogadores, a regra exige ${metaBarao} forasteiros (Base ${forasteirosEsperados} + 2 do Barão).\n` +
+            `Você configurou apenas ${forasteirosNoSetup}.\n\n` +
+            `Deseja ignorar a regra e enviar assim mesmo?`
+          );
+
+          if (!prosseguirBarao) return; // Cancela e permite ao Narrador ajustar o setup
+        }
+      }
+
+
+      // Limpa a partida anterior antes de começar o novo setup
+      db.ref('partida').remove().then(() => {
+        const updates = {}; // Criamos o objeto de updates aqui dentro para garantir limpeza
+
+        updates['partida/configuracao/virgemJaNomeada'] = false;
+        updates['partida/configuracao/matadorJaAtirou'] = false;
+        // updates['partida/configuracao/personagemDrunk'] = personagemDrunkEscolhido;
+        if (personagemDrunkEscolhido&& personagemDrunkEscolhido !== "") {
+          updates[`partida/configuracao/personagemDrunk/${personagemDrunkEscolhido}`] = "P";
+        }
+        updates[`partida/configuracao/personagemDrunk/${personagemDrunkEscolhido}`] = "P"; // P de Permanente
+        updates['partida/configuracao/app_ativo'] = true;
+        updates['partida/configuracao/statusLobby'] = "aberto";
+
+        // --- AUTOMAÇÃO BLEFES LOBISOMEM ---
+        const todosAldeoes = PERSONAGENS.filter(p => p.tipo === "Aldeão");
+        const aldeoesNoJogo = jogadores.filter(p => p.tipo === "Aldeão").map(p => p.personagem);
+        const aldeoesFora = todosAldeoes
+          .filter(p => !aldeoesNoJogo.includes(p.nome))
+          .sort(() => Math.random() - 0.5);
+        const blefesLobisomem = aldeoesFora.slice(0, 3).map(p => p.nome);
+
+        updates['partida/configuracao/blefesLobisomem'] = blefesLobisomem;
+
+        // --- AUTOMAÇÃO LAVADEIRA ---
+        const lavadeira = jogadores.find(p => p.personagem === "Lavadeira");
+        if (lavadeira) {
+          // const candidatosAldeoes = jogadores.filter(p => p.tipo === "Aldeão" && p.jogador !== lavadeira.jogador);
+          const candidatosAldeoes = jogadores.filter(p =>
+            p.tipo === "Aldeão" && p.personagem !== personagemDrunkEscolhido &&
+            p.jogador !== lavadeira.jogador
+          );
+          if (candidatosAldeoes.length > 0) {
+            const sorteadoReal = candidatosAldeoes[Math.floor(Math.random() * candidatosAldeoes.length)];
+            const candidatosFakes = jogadores.filter(p => p.jogador !== lavadeira.jogador && p.jogador !== sorteadoReal.jogador);
+            const sorteadoFake = candidatosFakes[Math.floor(Math.random() * candidatosFakes.length)];
+
+            updates['partida/escolhasNoite/selectedLavadeiraRole'] = sorteadoReal.personagem;
+            updates['partida/escolhasNoite/selectedLavadeiraRealPlayer'] = sorteadoReal.jogador;
+            updates['partida/escolhasNoite/selectedLavadeiraFakePlayer'] = sorteadoFake.jogador;
+          }
+        }
+
+        // --- AUTOMAÇÃO BIBLIOTECÁRIO ---
+        const bibliotecario = jogadores.find(p => p.personagem === "Bibliotecário");
+        if (bibliotecario) {
+          // 1. Filtra os Forasteiros (excluindo a si mesmo, caso o script permita)
+          // const candidatosForasteiros = jogadores.filter(p => p.tipo === "Forasteiro" && p.jogador !== bibliotecario.jogador);
+          const candidatosForasteiros = jogadores.filter(p =>
+            (p.tipo === "Forasteiro" || p.personagem === personagemDrunkEscolhido) &&
+            p.jogador !== bibliotecario.jogador
+          );
+
+          if (candidatosForasteiros.length > 0) {
+            const sorteadoReal = candidatosForasteiros[Math.floor(Math.random() * candidatosForasteiros.length)];
+            // 2. O Fake pode ser qualquer um, exceto o real e o próprio Bibliotecário
+            const candidatosFakes = jogadores.filter(p => p.jogador !== bibliotecario.jogador && p.jogador !== sorteadoReal.jogador);
+            const sorteadoFake = candidatosFakes[Math.floor(Math.random() * candidatosFakes.length)];
+
+            // Lógica do Bêbado
+            const papelParaExibir = (sorteadoReal.personagem === personagemDrunkEscolhido)
+              ? "Bêbado"
+              : sorteadoReal.personagem;
+
+            updates['partida/escolhasNoite/selectedBibliotecárioRole'] = papelParaExibir;
+            updates['partida/escolhasNoite/selectedBibliotecárioRealPlayer'] = sorteadoReal.jogador;
+            updates['partida/escolhasNoite/selectedBibliotecárioFakePlayer'] = sorteadoFake.jogador;
+          }
+        }
+
+        // --- AUTOMAÇÃO INVESTIGADOR ---
+        const investigador = jogadores.find(p => p.personagem === "Investigador");
+        if (investigador) {
+          // 1. Filtra os Minions (Minions)
+          const candidatosMinions = jogadores.filter(p => p.tipo === "Minion");
+
+          if (candidatosMinions.length > 0) {
+            const sorteadoReal = candidatosMinions[Math.floor(Math.random() * candidatosMinions.length)];
+            // 2. O Fake pode ser qualquer um, exceto o real e o Investigador
+            const candidatosFakes = jogadores.filter(p => p.jogador !== investigador.jogador && p.jogador !== sorteadoReal.jogador);
+            const sorteadoFake = candidatosFakes[Math.floor(Math.random() * candidatosFakes.length)];
+
+            updates['partida/escolhasNoite/selectedInvestigadorRole'] = sorteadoReal.personagem;
+            updates['partida/escolhasNoite/selectedInvestigadorRealPlayer'] = sorteadoReal.jogador;
+            updates['partida/escolhasNoite/selectedInvestigadorFakePlayer'] = sorteadoFake.jogador;
+          }
+        }
+
+        // --- AUTOMAÇÃO VOVÓ ---
+        // const vovo = jogadores.find(p => p.personagem === "Vovó");
+        // if (vovo) {
+        //   // O Neto deve ser um personagem do BEM (Aldeão ou Forasteiro) e não pode ser a própria Vovó
+        //   const candidatosNetos = jogadores.filter(p =>
+        //     (p.tipo === "Aldeão" || p.tipo === "Forasteiro") &&
+        //     p.jogador !== vovo.jogador
+        //   );
+
+        //   if (candidatosNetos.length > 0) {
+        //     const netoSortudo = candidatosNetos[Math.floor(Math.random() * candidatosNetos.length)];
+
+        //     updates['partida/configuracao/vovoNetoPersonagem'] = netoSortudo.personagem;
+        //     updates['partida/configuracao/vovoNetoJogador'] = netoSortudo.jogador;
+        //   }
+        // }
+
+        // --- AUTOMAÇÃO VOVÓ ---
+        const vovo = jogadores.find(p => p.personagem === "Vovó");
+
+        if (vovo) {
+          // 1. SORTEIO DO NETO REAL (Aldeão ou Forasteiro)
+          const candidatosNetos = jogadores.filter(p =>
+            (p.tipo === "Aldeão" || p.tipo === "Forasteiro") &&
+            p.jogador !== vovo.jogador
+          );
+
+          if (candidatosNetos.length > 0) {
+            const netoReal = candidatosNetos[Math.floor(Math.random() * candidatosNetos.length)];
+
+            updates['partida/configuracao/vovoNetoJogador'] = netoReal.jogador;
+            updates['partida/configuracao/vovoNetoPersonagem'] = netoReal.personagem;            
+
+            // 2. SORTEIO DO NETO FAKE
+            // Filtramos jogadores que não são a Vovó nem o Neto Real
+            const candidatosJogadoresFakes = jogadores.filter(p =>
+              p.jogador !== vovo.jogador &&
+              p.jogador !== netoReal.jogador
+            );
+
+            // Filtramos apenas personagens do tipo ALDEÃO para o papel falso
+            const personagensAldeoes = jogadores.filter(p => p.tipo === "Aldeão");
+
+            if (candidatosJogadoresFakes.length > 0 && personagensAldeoes.length > 0) {
+              const jogadorFake = candidatosJogadoresFakes[Math.floor(Math.random() * candidatosJogadoresFakes.length)];
+
+              // Sorteia um personagem da lista de ALDEÕES
+              const papelFake = personagensAldeoes[Math.floor(Math.random() * personagensAldeoes.length)].personagem;
+
+              updates['partida/configuracao/vovoNetoJogadorFake'] = jogadorFake.jogador;
+              updates['partida/configuracao/vovoNetoPersonagemFake'] = papelFake;
+            }
+          }
+        }
+
+        // --- PROCESSAMENTO DE TODOS OS JOGADORES ---
+        const jogadoresEmbaralhados = jogadores.sort(() => Math.random() - 0.5);
+
+        jogadoresEmbaralhados.forEach((p, index) => { // O 'index' será nossa posição na mesa
+          const nomeChave = p.jogador.replace(/[.#$[\]]/g, "");
+          // Buscamos o link correspondente ao personagem no dicionário
+          const linkPessoal = linksGerados[p.personagem.toUpperCase()] || "";
+
+          updates['partida/jogadores/' + nomeChave] = {
+            personagem: p.personagem,
+            tipo: p.tipo,
+            jogador: p.jogador,
+            habilidade: p.habilidade,
+            vivo: true,
+            senha: "",
+            posicao: index,
+            url_pessoal: linkPessoal
+          };
+        });
+
+        // ENVIO ÚNICO (ATÔMICO)
+        db.ref().update(updates)
+          .then(() => showMsg("🔥 Sincronizado com os celulares!"))
+          .catch((err) => showMsg("Erro ao enviar: " + err, true));
+      });
+    }
+
+    function atualizarListaDrunk() {
+      const select = document.getElementById('selectDrunk');
+      if (!select) return;
+
+      // Limpa opções anteriores mantendo a primeira
+      select.innerHTML = '<option value="">Ninguém é o Bêbado</option>';
+
+      // Recupera os dados que foram validados e salvos no localStorage
+      const dadosSalvos = JSON.parse(localStorage.getItem("setup_botc"));
+
+      if (dadosSalvos && dadosSalvos.personagens_selecionados) {
+        // Filtramos apenas os personagens que são do tipo 'Aldeão'
+        dadosSalvos.personagens_selecionados.forEach(p => {
+          if (p.tipo === 'Aldeão') {
+            const option = document.createElement('option');
+
+            // O valor técnico (salvamento) continua sendo apenas o personagem
+            option.value = p.personagem;
+
+            // O texto visível para você no dropdown será: Personagem (JOGADOR)
+            option.textContent = `${p.personagem} (${p.jogador})`;
+
+            select.appendChild(option);
+          }
+        });
+      }
+    }
+
+  </script>
+
+</body>
+
+</html>
